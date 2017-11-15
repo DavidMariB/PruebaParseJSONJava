@@ -40,6 +40,24 @@
         android:layout_toRightOf="@+id/tv2"
         android:layout_below="@+id/tv1"/>
 
+    <TextView
+        android:id="@+id/tv5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:text="Ranked:"
+        android:layout_below="@+id/tv2"/>
+
+    <TextView
+        android:id="@+id/tv6"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:layout_toRightOf="@+id/tv5"
+        android:layout_below="@+id/tv2"/>
+
     <EditText
         android:id="@+id/et1"
         android:layout_width="wrap_content"
@@ -51,7 +69,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/et1"
-        android:text="Comprobar"
-        android:onClick="requestJsonData"/>
+        android:text="Summoner"
+        android:onClick="requestSummonerInfo"/>
+
+    <Button
+        android:id="@+id/b2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ranked Position"
+        android:layout_below="@+id/b1"
+        android:onClick="requestSummonerLeague"/>
 
 </android.widget.RelativeLayout>
