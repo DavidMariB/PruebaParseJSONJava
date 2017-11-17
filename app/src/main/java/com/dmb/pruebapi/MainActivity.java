@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -31,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
     private ProgressDialog dialog;
     private TextView tv3,tv6,tv7;
     private EditText et1;
-    private String name,level,id,tier,rank,profileIcon;
+    private String name,level,id,tier,rank,profileIcon,accountID,champID;
     private CardView cv;
     private ImageView img1,img2;
 
@@ -84,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
             level = object.optString("summonerLevel");
             id = object.optString("id");
             profileIcon = object.optString("profileIconId");
+            accountID = object.optString("accountId");
             cv.setVisibility(View.VISIBLE);
             tv3.setText(name);
             tv7.setText("Nivel: "+level);
@@ -155,5 +157,46 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         dialog.dismiss();
+    }
+
+    public void requestChampionMasteries(View v){
+
+        dialog = new ProgressDialog(this);
+        dialog.setMessage("Cargando...");
+        dialog.show();
+
+        String url = "https://euw1.api.riotgames.com/lol/league/v3/positions/by-summoner/"+id.toString()+"?api_key=RGAPI-de1e6d05-3e78-43b3-bf17-8929e968ff58";
+
+        StringRequest request = new StringRequest(url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String string) {
+                parseChampionMasteries(string);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                Toast.makeText(getApplicationContext(), "No se ha podido recuperar la informacion", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            }
+        });
+
+        RequestQueue rQueue = Volley.newRequestQueue(MainActivity.this);
+        rQueue.add(request);
+    }
+
+    public void parseChampionMasteries(String jsonString){
+
+        try{
+            JSONArray array = new JSONArray(jsonString);
+
+            for(int i =0;i<array.length();i++){
+                JSONObject object = array.getJSONObject(i);
+                champID = object.optString("championId");
+            }
+        }catch (JSONException e){
+            e.printStackTrace();
+        }
+
+
     }
 }
