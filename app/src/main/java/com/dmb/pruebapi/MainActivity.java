@@ -1,15 +1,19 @@
 package com.dmb.pruebapi;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,39 +34,80 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     private ProgressDialog dialog;
-    private TextView tv3,tv6,tv7;
-    private EditText et1;
-    private String name,level,id,tier,rank,profileIcon,accountID,champID;
-    private CardView cv;
-    private ImageView img1,img2;
+    private TextView summonerName,summonerTier,summonerLevel;
+    private EditText reqSummonerName;
+    public String name,level,summonerID,accountID,tier,rank,profileIcon,selectedRegion;
+    private CardView summonerInfoCard;
+    private ImageView summonerTierIcon,summonerProfileIcon;
+    public Spinner selectRegion;
+    private Button recentMatches;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        tv3 = (TextView)findViewById(R.id.tv3);
-        tv6 = (TextView)findViewById(R.id.tv6);
-        tv7 = (TextView)findViewById(R.id.tv7);
-        et1 = (EditText)findViewById(R.id.et1);
-        cv = (CardView)findViewById(R.id.card_view);
-        img1 = (ImageView)findViewById(R.id.img1);
-        img2 = (ImageView)findViewById(R.id.img2);
+        summonerName = (TextView)findViewById(R.id.tvSummonerName);
+        summonerTier = (TextView)findViewById(R.id.tvSummonerTier);
+        summonerLevel = (TextView)findViewById(R.id.tvSummonerLevel);
+        reqSummonerName = (EditText)findViewById(R.id.requestSummonerName);
+        summonerInfoCard = (CardView)findViewById(R.id.summonerInfoCard);
+        summonerTierIcon = (ImageView)findViewById(R.id.imgSummonerTier);
+        summonerProfileIcon = (ImageView)findViewById(R.id.imgSummonerIcon);
+        selectRegion = (Spinner)findViewById(R.id.selectRegion);
+        recentMatches = (Button)findViewById(R.id.recentMatches);
 
+        selectRegion();
+    }
+
+    public void selectRegion(){
+        String[] region = {"EUW","NA","LAN","LAS"};
+        selectRegion.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, region));
+
+        selectRegion.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                // TODO Auto-generated method stub
+                selectedRegion = parent.getItemAtPosition(position).toString();
+                switch (selectedRegion){
+                    case "EUW":
+                        selectedRegion="euw1";
+                        break;
+                    case "NA":
+                        selectedRegion="na1";
+                        break;
+                    case "LAN":
+                        selectedRegion="la1";
+                        break;
+                    case "LAS":
+                        selectedRegion="la2";
+                        break;
+                    default:
+                        System.out.print("Lo mismo no funciona");
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> arg0) {
+                // TODO Auto-generated method stub
+            }
+        });
     }
 
     public void requestSummonerInfo(View v) {
-
         dialog = new ProgressDialog(this);
         dialog.setMessage("Cargando...");
         dialog.show();
 
-        String url = "https://euw1.api.riotgames.com/lol/summoner/v3/summoners/by-name/" + et1.getText().toString() + "?api_key=RGAPI-de1e6d05-3e78-43b3-bf17-8929e968ff58";
-
+        String url = "https://"+selectedRegion+".api.riotgames.com/lol/summoner/v3/summoners/by-name/" + reqSummonerName.getText().toString() + "?api_key=RGAPI-566e7f9f-de68-4912-9061-4a8f404a14cc";
+        System.out.print(url);
         StringRequest request = new StringRequest(url, new Response.Listener<String>() {
             @Override
             public void onResponse(String string) {
                 parseSummonerInfo(string);
+                requestSummonerLeague();
             }
         }, new Response.ErrorListener() {
             @Override
@@ -83,13 +128,13 @@ public class MainActivity extends AppCompatActivity {
             JSONObject object = new JSONObject(jsonString);
             name = object.optString("name");
             level = object.optString("summonerLevel");
-            id = object.optString("id");
-            profileIcon = object.optString("profileIconId");
+            summonerID = object.optString("id");
             accountID = object.optString("accountId");
-            cv.setVisibility(View.VISIBLE);
-            tv3.setText(name);
-            tv7.setText("Nivel: "+level);
-            Picasso.with(getApplicationContext()).load("http://ddragon.leagueoflegends.com/cdn/7.22.1/img/profileicon/"+profileIcon+".png").into(img2);
+            profileIcon = object.optString("profileIconId");
+            summonerInfoCard.setVisibility(View.VISIBLE);
+            summonerName.setText(name);
+            summonerLevel.setText("Nivel: "+level);
+            Picasso.with(getApplicationContext()).load("http://ddragon.leagueoflegends.com/cdn/7.23.1/img/profileicon/"+profileIcon+".png").into(summonerProfileIcon);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -97,17 +142,23 @@ public class MainActivity extends AppCompatActivity {
         dialog.dismiss();
     }
 
-    public void requestSummonerLeague(View v){
+    public void requestSummonerLeague(){
         dialog = new ProgressDialog(this);
         dialog.setMessage("Cargando...");
         dialog.show();
 
-        String url = "https://euw1.api.riotgames.com/lol/league/v3/positions/by-summoner/"+id.toString()+"?api_key=RGAPI-de1e6d05-3e78-43b3-bf17-8929e968ff58";
+        String url = "https://"+selectedRegion+".api.riotgames.com/lol/league/v3/positions/by-summoner/"+summonerID+"?api_key=RGAPI-566e7f9f-de68-4912-9061-4a8f404a14cc";
 
         StringRequest request = new StringRequest(url, new Response.Listener<String>() {
             @Override
             public void onResponse(String string) {
-                parseSummonerLeague(string);
+                if(string.length()>2){
+                    parseSummonerLeague(string);
+                }else{
+                    summonerTier.setText("Unranked");
+                    summonerTierIcon.setImageResource(R.drawable.unranked_icon);
+                    dialog.dismiss();
+                }
             }
         }, new Response.ErrorListener() {
             @Override
@@ -128,75 +179,45 @@ public class MainActivity extends AppCompatActivity {
 
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject obj = arr.getJSONObject(i);
-                if(obj.getString("queueType").contains("SOLO")){
-                        tier = obj.getString("tier");
-                        rank = obj.getString("rank");
-                        tv6.setText(tier+" "+rank);
+
+                if(obj.getString("queueType").contains("SOLO") && obj != null){
+                    tier = obj.getString("tier");
+                    rank = obj.getString("rank");
+                    summonerTier.setText(tier+" "+rank);
+
+                    if(obj.getString("tier").contains("BRONZE")){
+                        summonerTierIcon.setImageResource(R.drawable.bronze_icon);
+                    }else if(obj.getString("tier").contains("SILVER")){
+                        summonerTierIcon.setImageResource(R.drawable.silver_icon);
+                    }else if(obj.getString("tier").contains("GOLD")){
+                        summonerTierIcon.setImageResource(R.drawable.gold_icon);
+                    }else if(obj.getString("tier").contains("PLATINUM")){
+                        summonerTierIcon.setImageResource(R.drawable.platinum_icon);
+                    }else if(obj.getString("tier").contains("DIAMOND")){
+                        summonerTierIcon.setImageResource(R.drawable.diamond_icon);
+                    }else if(obj.getString("tier").contains("MASTER")){
+                        summonerTierIcon.setImageResource(R.drawable.master_icon);
+                    }else if(obj.getString("tier").contains("CHALLENGER")){
+                        summonerTierIcon.setImageResource(R.drawable.challenger_icon);
+                    }
+                }else {
+                    summonerTier.setText("Unranked");
+                    summonerTierIcon.setImageResource(R.drawable.unranked_icon);
                 }
 
-                if(obj.getString("tier").contains("UNRANKED")){
-                    img1.setImageResource(R.drawable.unranked_icon);
-                }else if(obj.getString("tier").contains("BRONZE")){
-                    img1.setImageResource(R.drawable.bronze_icon);
-                }else if(obj.getString("tier").contains("SILVER")){
-                    img1.setImageResource(R.drawable.silver_icon);
-                }else if(obj.getString("tier").contains("GOLD")){
-                    img1.setImageResource(R.drawable.gold_icon);
-                }else if(obj.getString("tier").contains("PLATINUM")){
-                    img1.setImageResource(R.drawable.platinum_icon);
-                }else if(obj.getString("tier").contains("DIAMOND")){
-                    img1.setImageResource(R.drawable.diamond_icon);
-                }else if(obj.getString("tier").contains("MASTER")){
-                    img1.setImageResource(R.drawable.master_icon);
-                }else if(obj.getString("tier").contains("CHALLENGER")){
-                    img1.setImageResource(R.drawable.challenger_icon);
-                }
+
 
             }
         }catch (JSONException e){
             e.printStackTrace();
         }
         dialog.dismiss();
+
+        recentMatches.setVisibility(View.VISIBLE);
     }
 
-    public void requestChampionMasteries(View v){
-
-        dialog = new ProgressDialog(this);
-        dialog.setMessage("Cargando...");
-        dialog.show();
-
-        String url = "https://euw1.api.riotgames.com/lol/league/v3/positions/by-summoner/"+id.toString()+"?api_key=RGAPI-de1e6d05-3e78-43b3-bf17-8929e968ff58";
-
-        StringRequest request = new StringRequest(url, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String string) {
-                parseChampionMasteries(string);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError volleyError) {
-                Toast.makeText(getApplicationContext(), "No se ha podido recuperar la informacion", Toast.LENGTH_SHORT).show();
-                dialog.dismiss();
-            }
-        });
-
-        RequestQueue rQueue = Volley.newRequestQueue(MainActivity.this);
-        rQueue.add(request);
-    }
-
-    public void parseChampionMasteries(String jsonString){
-
-        try{
-            JSONArray array = new JSONArray(jsonString);
-
-            for(int i =0;i<array.length();i++){
-                JSONObject object = array.getJSONObject(i);
-                champID = object.optString("championId");
-            }
-        }catch (JSONException e){
-            e.printStackTrace();
-        }
-
-
+    public void recentMatchesActivity(View v){
+        Intent intent = new Intent(this,RecentMatches.class);
+        startActivity(intent);
     }
 }
