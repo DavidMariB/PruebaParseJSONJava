@@ -1,7 +1,9 @@
 package com.dmb.pruebapi;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
@@ -29,6 +31,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -36,16 +39,22 @@ public class MainActivity extends AppCompatActivity {
     private ProgressDialog dialog;
     private TextView summonerName,summonerTier,summonerLevel;
     private EditText reqSummonerName;
-    public String name,level,summonerID,accountID,tier,rank,profileIcon,selectedRegion;
+    private String champName,champKey,champImg,name,level,summonerID,accountID,tier,rank,profileIcon,selectedRegion;
     private CardView summonerInfoCard;
     private ImageView summonerTierIcon,summonerProfileIcon;
-    public Spinner selectRegion;
+    private Spinner selectRegion;
     private Button recentMatches;
+    public static ArrayList<Champion> champ;
+    public static String apiKey;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        apiKey = "RGAPI-aac0cf53-f7ac-4f6e-b326-a498570717ac";
+
+        requestAllChamps();
 
         summonerName = (TextView)findViewById(R.id.tvSummonerName);
         summonerTier = (TextView)findViewById(R.id.tvSummonerTier);
@@ -58,6 +67,51 @@ public class MainActivity extends AppCompatActivity {
         recentMatches = (Button)findViewById(R.id.recentMatches);
 
         selectRegion();
+    }
+
+    public void requestAllChamps(){
+        dialog = new ProgressDialog(this);
+        dialog.setMessage("Cargando...");
+        dialog.show();
+
+        String url = "http://ddragon.leagueoflegends.com/cdn/7.23.1/data/en_US/champion.json";
+        StringRequest request = new StringRequest(url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String string) {
+                parseAllChamps(string);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                Toast.makeText(getApplicationContext(), "No se ha encontrado el Invocador", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            }
+        });
+
+        RequestQueue rQueue = Volley.newRequestQueue(MainActivity.this);
+        rQueue.add(request);
+    }
+
+    public void parseAllChamps(String jsonString){
+        champ = new ArrayList<>();
+        try{
+
+            JSONObject obj = new JSONObject(jsonString);
+            JSONObject object = obj.getJSONObject("data");
+            Iterator<String> it = object.keys();
+            while(it.hasNext()){
+                JSONObject champion = (JSONObject) object.get(it.next());
+                champName = champion.optString("name");
+                champKey = champion.optString("key");
+                champImg = champion.optString("full");
+                Champion ch = new Champion(champName,champKey,champImg);
+                champ.add(ch);
+            }
+
+        }catch (JSONException e){
+            e.printStackTrace();
+        }
+        dialog.dismiss();
     }
 
     public void selectRegion(){
@@ -101,8 +155,7 @@ public class MainActivity extends AppCompatActivity {
         dialog.setMessage("Cargando...");
         dialog.show();
 
-        String url = "https://"+selectedRegion+".api.riotgames.com/lol/summoner/v3/summoners/by-name/" + reqSummonerName.getText().toString() + "?api_key=RGAPI-566e7f9f-de68-4912-9061-4a8f404a14cc";
-        System.out.print(url);
+        String url = "https://"+selectedRegion+".api.riotgames.com/lol/summoner/v3/summoners/by-name/"+reqSummonerName.getText().toString().replace(" ","")+"?api_key="+apiKey;
         StringRequest request = new StringRequest(url, new Response.Listener<String>() {
             @Override
             public void onResponse(String string) {
@@ -147,13 +200,15 @@ public class MainActivity extends AppCompatActivity {
         dialog.setMessage("Cargando...");
         dialog.show();
 
-        String url = "https://"+selectedRegion+".api.riotgames.com/lol/league/v3/positions/by-summoner/"+summonerID+"?api_key=RGAPI-566e7f9f-de68-4912-9061-4a8f404a14cc";
+        String url = "https://"+selectedRegion+".api.riotgames.com/lol/league/v3/positions/by-summoner/"+summonerID+"?api_key="+apiKey;
+
 
         StringRequest request = new StringRequest(url, new Response.Listener<String>() {
             @Override
             public void onResponse(String string) {
                 if(string.length()>2){
                     parseSummonerLeague(string);
+
                 }else{
                     summonerTier.setText("Unranked");
                     summonerTierIcon.setImageResource(R.drawable.unranked_icon);
@@ -179,7 +234,6 @@ public class MainActivity extends AppCompatActivity {
 
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject obj = arr.getJSONObject(i);
-
                 if(obj.getString("queueType").contains("SOLO") && obj != null){
                     tier = obj.getString("tier");
                     rank = obj.getString("rank");
@@ -200,13 +254,7 @@ public class MainActivity extends AppCompatActivity {
                     }else if(obj.getString("tier").contains("CHALLENGER")){
                         summonerTierIcon.setImageResource(R.drawable.challenger_icon);
                     }
-                }else {
-                    summonerTier.setText("Unranked");
-                    summonerTierIcon.setImageResource(R.drawable.unranked_icon);
                 }
-
-
-
             }
         }catch (JSONException e){
             e.printStackTrace();
@@ -217,7 +265,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void recentMatchesActivity(View v){
+        SharedPreferences preferences = getSharedPreferences("data", Context.MODE_PRIVATE);
+        SharedPreferences.Editor edit = preferences.edit();
+        edit.putString("selectedRegion",selectedRegion);
+        edit.putString("accountID",accountID);
+        edit.apply();
         Intent intent = new Intent(this,RecentMatches.class);
-        startActivity(intent);
+        startActivityForResult(intent,1);
     }
 }

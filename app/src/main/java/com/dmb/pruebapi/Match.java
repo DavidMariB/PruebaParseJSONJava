@@ -8,10 +8,10 @@ import android.widget.ImageView;
 
 public class Match {
 
-    private int champImg;
+    private ImageView champImg;
     private String score,result,champName,lane;
 
-    public Match(int ci, String s, String r, String cn,String l){
+    public Match(ImageView ci, String s, String r, String cn,String l){
 
         this.champImg = ci;
         this.score = s;
@@ -20,11 +20,11 @@ public class Match {
         this.lane = l;
     }
 
-    public int getChampImg() {
+    public ImageView getChampImg() {
         return champImg;
     }
 
-    public void setChampImg(int champImg) {
+    public void setChampImg(ImageView champImg) {
         this.champImg = champImg;
     }
 
