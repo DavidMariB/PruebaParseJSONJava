@@ -1,14 +1,15 @@
 package com.dmb.pruebapi;
 
+import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,16 +25,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 public class RecentMatches extends AppCompatActivity {
 
     private ProgressDialog dialog;
-    private String selectedRegion,accountID,championID,gameID,lane,champImg,champName;
+    private String selectedRegion,accountID,championID,gameID,lane,champImg,champName,matchResult,kills,deaths,assists,checkChampID;
     private ImageView champIcon;
     private TextView tvChampName,tvMatchScore,tvMatchResult,tvMatchLane;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +56,7 @@ public class RecentMatches extends AppCompatActivity {
 
     public void requestLastMatches(){
         dialog = new ProgressDialog(this);
-        dialog.setMessage("Cargando...");
+        dialog.setMessage("Loading...");
         dialog.show();
 
         String url = "https://"+selectedRegion+".api.riotgames.com/lol/match/v3/matchlists/by-account/"+accountID+"/recent?api_key="+MainActivity.apiKey;
@@ -101,7 +99,7 @@ public class RecentMatches extends AppCompatActivity {
 
     public void requestChampByID(){
         dialog = new ProgressDialog(this);
-        dialog.setMessage("Cargando...");
+        dialog.setMessage("Loading...");
         dialog.show();
 
         String url = "https://"+selectedRegion+".api.riotgames.com/lol/static-data/v3/champions/"+championID+"?locale=en_US&tags=image&api_key="+MainActivity.apiKey;
@@ -110,6 +108,7 @@ public class RecentMatches extends AppCompatActivity {
             @Override
             public void onResponse(String string) {
                 parseChampID(string);
+                requestMatchInfo();
                 dialog.dismiss();
             }
         }, new Response.ErrorListener() {
@@ -137,5 +136,65 @@ public class RecentMatches extends AppCompatActivity {
         }
 
         dialog.dismiss();
+    }
+    
+    public void requestMatchInfo(){
+        dialog = new ProgressDialog(this);
+        dialog.setMessage("Loading...");
+        dialog.show();
+
+        String url = "https://"+selectedRegion+".api.riotgames.com/lol/match/v3/matches/"+gameID+"?api_key="+MainActivity.apiKey;
+
+        StringRequest request = new StringRequest(url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String string) {
+                parseMatchInfo(string);
+                dialog.dismiss();
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                Toast.makeText(getApplicationContext(), "No se ha podido recuperar la informacion", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            }
+        });
+
+        RequestQueue rQueue = Volley.newRequestQueue(RecentMatches.this);
+        rQueue.add(request);
+    }
+
+    public void parseMatchInfo(String jsonString){
+        try{
+            JSONObject object = new JSONObject(jsonString);
+            JSONArray array = object.getJSONArray("teams");
+
+                JSONObject obj = array.getJSONObject(0);
+                matchResult = obj.optString("win");
+
+                if (matchResult.equals("Fail")){
+                    tvMatchResult.setTextColor(Color.YELLOW);
+                    tvMatchResult.setText("LOSS");
+                }else {
+                    tvMatchResult.setTextColor(Color.CYAN);
+                    tvMatchResult.setText("WIN");
+                }
+
+                JSONArray array1 = object.getJSONArray("participants");
+
+                for(int i=0;i<array1.length();i++){
+                    JSONObject obj1 = array1.getJSONObject(i);
+                    checkChampID = obj1.optString("championId");
+                    if(checkChampID.equals(championID)){
+                        JSONObject object1 = obj1.getJSONObject("stats");
+                        kills = object1.optString("kills");
+                        deaths = object1.optString("deaths");
+                        assists = object1.optString("assists");
+                    }
+                }
+                tvMatchScore.setText(kills+"/"+deaths+"/"+assists);
+        }catch (JSONException e){
+            e.printStackTrace();
+        }
+
     }
 }

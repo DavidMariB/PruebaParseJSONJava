@@ -27,7 +27,28 @@
                 android:layout_height="wrap_content"
                 android:textStyle="bold"
                 android:layout_toRightOf="@+id/champIcon"
-                android:layout_marginLeft="100dp"/>
+                android:layout_marginLeft="10dp"
+                android:textSize="20sp"/>
+
+            <TextView
+                android:id="@+id/matchLane"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/champName"
+                android:layout_toRightOf="@+id/champIcon"
+                android:layout_marginLeft="10dp"
+                android:textStyle="bold"
+                android:textSize="20sp"/>
+
+            <TextView
+                android:id="@+id/matchResult"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/matchLane"
+                android:layout_toRightOf="@+id/champIcon"
+                android:layout_marginLeft="10dp"
+                android:textSize="20sp"
+                android:textStyle="bold"/>
 
             <TextView
                 android:id="@+id/matchScore"
@@ -35,23 +56,8 @@
                 android:layout_height="wrap_content"
                 android:textStyle="bold"
                 android:layout_toRightOf="@+id/champName"
-                android:layout_marginLeft="100dp"/>
-
-            <TextView
-                android:id="@+id/matchResult"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/champIcon"
-                android:layout_marginLeft="100dp"/>
-
-            <TextView
-                android:id="@+id/matchLane"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/champIcon"
-                android:layout_toRightOf="@+id/matchResult"
-                android:layout_marginLeft="50dp"
-                android:textStyle="bold"/>
+                android:layout_marginLeft="70dp"
+                android:textSize="15sp"/>
 
         </RelativeLayout>
 

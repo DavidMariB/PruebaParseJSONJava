@@ -31,6 +31,13 @@
         android:text="Summoner"
         android:onClick="requestSummonerInfo"/>
 
+    <Button
+        android:id="@+id/testNotify"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Test Notification"
+        android:layout_below="@+id/summonerInfo"/>
+
         <android.support.v7.widget.CardView
             android:id="@+id/summonerInfoCard"
             android:layout_width="match_parent"

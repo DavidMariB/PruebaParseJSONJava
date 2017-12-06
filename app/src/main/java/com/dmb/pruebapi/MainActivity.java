@@ -14,7 +14,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -71,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void requestAllChamps(){
         dialog = new ProgressDialog(this);
-        dialog.setMessage("Cargando...");
+        dialog.setMessage("Loading...");
         dialog.show();
 
         String url = "http://ddragon.leagueoflegends.com/cdn/7.23.1/data/en_US/champion.json";
@@ -152,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void requestSummonerInfo(View v) {
         dialog = new ProgressDialog(this);
-        dialog.setMessage("Cargando...");
+        dialog.setMessage("Loading...");
         dialog.show();
 
         String url = "https://"+selectedRegion+".api.riotgames.com/lol/summoner/v3/summoners/by-name/"+reqSummonerName.getText().toString().replace(" ","")+"?api_key="+apiKey;
@@ -197,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void requestSummonerLeague(){
         dialog = new ProgressDialog(this);
-        dialog.setMessage("Cargando...");
+        dialog.setMessage("Loading...");
         dialog.show();
 
         String url = "https://"+selectedRegion+".api.riotgames.com/lol/league/v3/positions/by-summoner/"+summonerID+"?api_key="+apiKey;
